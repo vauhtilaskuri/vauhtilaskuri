@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Vauhtilaskuri</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .input-focus:focus {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+            border-color: #3B82F6;
+        }
+        /* Hide scrollbar for clean look */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Main container for the single-page app -->
+    <div class="container mx-auto max-w-lg min-h-screen flex flex-col p-4">
+
+        <!-- Tab buttons -->
+        <div class="flex bg-gray-200 p-1 rounded-lg mb-4">
+            <button id="tab-vauhtilaskuri" onclick="switchTab('vauhtilaskuri')" class="flex-1 py-2 px-4 text-sm font-semibold rounded-md bg-white text-blue-600 shadow">Vauhtilaskuri</button>
+            <button id="tab-tavoitetaulukko" onclick="switchTab('tavoitetaulukko')" class="flex-1 py-2 px-4 text-sm font-semibold text-gray-600">Tavoitetaulukko</button>
+        </div>
+
+        <!-- Vauhtilaskuri Page -->
+        <div id="page-vauhtilaskuri" class="flex flex-col flex-grow">
+            <div class="text-center mb-4">
+                <h1 class="text-3xl font-bold text-gray-800">Vauhtilaskuri</h1>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-3">
+                <div>
+                    <label for="dist" class="text-xs text-gray-500">Matka (km)</label>
+                    <input type="number" id="dist" inputmode="decimal" placeholder="5.0" class="w-full text-lg p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none input-focus">
+                </div>
+                <div>
+                    <label for="min" class="text-xs text-gray-500">Min</label>
+                    <input type="number" id="min" inputmode="numeric" placeholder="25" class="w-full text-lg p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none input-focus">
+                </div>
+                <div>
+                    <label for="sek" class="text-xs text-gray-500">Sek</label>
+                    <input type="number" id="sek" inputmode="numeric" placeholder="30" class="w-full text-lg p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none input-focus">
+                </div>
+            </div>
+
+            <button onclick="calculatePace()" class="w-full bg-blue-600 text-white font-bold text-lg py-3 mt-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none">Laske</button>
+            
+            <div id="error-vauhti" class="text-center text-red-600 mt-2 text-sm"></div>
+            
+            <div id="results-vauhti" class="hidden mt-4 space-y-4">
+                <!-- Pace and Lap time -->
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div class="bg-blue-50 p-3 rounded-lg">
+                        <p class="text-xs text-gray-600">Vauhti</p>
+                        <p id="pace-output" class="text-xl font-bold text-blue-700">00:00</p>
+                        <p class="text-xs text-gray-500">/km</p>
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded-lg">
+                        <p class="text-xs text-gray-600">Kierrosaika</p>
+                        <p id="lap-output" class="text-xl font-bold text-blue-700">00:00.00</p>
+                        <p class="text-xs text-gray-500">400m</p>
+                    </div>
+                </div>
+                <!-- Estimated times -->
+                <div class="bg-gray-50 rounded-lg border">
+                    <h3 class="text-md font-semibold p-3 border-b">Arvioidut ajat</h3>
+                    <table class="w-full text-sm" id="competition-results"></table>
+                </div>
+            </div>
+            <div class="text-center text-xs text-gray-400 mt-4">Kimmo Porttila</div>
+        </div>
+
+        <!-- Tavoitetaulukko Page -->
+        <div id="page-tavoitetaulukko" class="hidden flex-col flex-grow">
+            <div class="text-center mb-4">
+                <h1 class="text-3xl font-bold text-gray-800">Tavoitetaulukko</h1>
+            </div>
+            
+            <select id="target-dist-select" class="w-full p-2 border border-gray-300 rounded-lg mb-3">
+                <!-- Options added by JS -->
+            </select>
+            
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label for="target-min" class="text-xs text-gray-500">Tavoiteaika (min)</label>
+                    <input type="number" id="target-min" inputmode="numeric" placeholder="20" class="w-full text-lg p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none input-focus">
+                </div>
+                <div>
+                    <label for="target-sek" class="text-xs text-gray-500">Tavoiteaika (sek)</label>
+                    <input type="number" id="target-sek" inputmode="numeric" placeholder="00" class="w-full text-lg p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none input-focus">
+                </div>
+            </div>
+
+            <button onclick="calculateTargetPace()" class="w-full bg-blue-600 text-white font-bold text-lg py-3 mt-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none">Laske väliajat</button>
+            
+            <div id="error-tavoite" class="text-center text-red-600 mt-2 text-sm"></div>
+            
+            <div id="results-tavoite" class="hidden mt-4 space-y-4">
+                 <div class="grid grid-cols-2 gap-4 text-center">
+                    <div class="bg-blue-50 p-3 rounded-lg">
+                        <p class="text-xs text-gray-600">Vaadittu vauhti</p>
+                        <p id="req-pace-output" class="text-xl font-bold text-blue-700">00:00</p>
+                        <p class="text-xs text-gray-500">/km</p>
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded-lg">
+                        <p class="text-xs text-gray-600">Kierrosaika</p>
+                        <p id="req-lap-output" class="text-xl font-bold text-blue-700">00:00.00</p>
+                        <p class="text-xs text-gray-500">400m</p>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg border">
+                    <h3 class="text-md font-semibold p-3 border-b">Väliajat</h3>
+                    <table class="w-full text-sm" id="splits-table"></table>
+                </div>
+            </div>
+            <div class="text-center text-xs text-gray-400 mt-4">Kimmo Porttila</div>
+        </div>
+    </div>
+
+    <script>
+        const competitionEvents = [
+            { name: "1500 m", distanceInKm: 1.5 },
+            { name: "3000 m esteet", distanceInKm: 3.0 },
+            { name: "5000 m", distanceInKm: 5.0 },
+            { name: "10 km", distanceInKm: 10.0 },
+            { name: "Puolimaraton", distanceInKm: 21.0975 },
+            { name: "Maraton", distanceInKm: 42.195 },
+            { name: "Cooperin testi (12 min)", distanceInKm: null }
+        ];
+
+        // Populate target distance dropdown
+        const targetDistSelect = document.getElementById('target-dist-select');
+        competitionEvents.filter(e => e.distanceInKm).forEach((event, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = event.name;
+            if (event.distanceInKm === 5.0) option.selected = true;
+            targetDistSelect.appendChild(option);
+        });
+
+        function formatTime(totalSeconds, showMilliseconds = false) {
+            if (isNaN(totalSeconds) || !isFinite(totalSeconds)) return "00:00";
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = Math.floor(totalSeconds % 60);
+
+            if (showMilliseconds) {
+                const milliseconds = Math.round((totalSeconds - Math.floor(totalSeconds)) * 100);
+                const totalMinutesForDisplay = Math.floor(totalSeconds / 60);
+                const secondsForDisplay = Math.floor(totalSeconds % 60);
+                if (totalMinutesForDisplay > 0) {
+                    return `${totalMinutesForDisplay}:${String(secondsForDisplay).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+                }
+                return `${String(secondsForDisplay).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+            }
+            if (hours > 0) {
+                return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function switchTab(tabName) {
+            document.getElementById('page-vauhtilaskuri').classList.toggle('hidden', tabName !== 'vauhtilaskuri');
+            document.getElementById('page-tavoitetaulukko').classList.toggle('hidden', tabName !== 'tavoitetaulukko');
+            
+            document.getElementById('tab-vauhtilaskuri').classList.toggle('bg-white', tabName === 'vauhtilaskuri');
+            document.getElementById('tab-vauhtilaskuri').classList.toggle('text-blue-600', tabName === 'vauhtilaskuri');
+            document.getElementById('tab-vauhtilaskuri').classList.toggle('shadow', tabName === 'vauhtilaskuri');
+            document.getElementById('tab-vauhtilaskuri').classList.toggle('text-gray-600', tabName !== 'vauhtilaskuri');
+
+            document.getElementById('tab-tavoitetaulukko').classList.toggle('bg-white', tabName === 'tavoitetaulukko');
+            document.getElementById('tab-tavoitetaulukko').classList.toggle('text-blue-600', tabName === 'tavoitetaulukko');
+            document.getElementById('tab-tavoitetaulukko').classList.toggle('shadow', tabName === 'tavoitetaulukko');
+            document.getElementById('tab-tavoitetaulukko').classList.toggle('text-gray-600', tabName !== 'tavoitetaulukko');
+        }
+
+        function calculatePace() {
+            document.activeElement.blur();
+            const distance = parseFloat(document.getElementById('dist').value.replace(',', '.'));
+            const minutes = parseInt(document.getElementById('min').value) || 0;
+            const seconds = parseInt(document.getElementById('sek').value) || 0;
+            const errorDiv = document.getElementById('error-vauhti');
+            const resultsDiv = document.getElementById('results-vauhti');
+
+            if (isNaN(distance) || distance <= 0) {
+                errorDiv.textContent = "Syötä kelvollinen matka.";
+                resultsDiv.classList.add('hidden');
+                return;
+            }
+            const totalSeconds = (minutes * 60) + seconds;
+            if (totalSeconds <= 0) {
+                errorDiv.textContent = "Syötä kelvollinen aika.";
+                resultsDiv.classList.add('hidden');
+                return;
+            }
+            errorDiv.textContent = "";
+            resultsDiv.classList.remove('hidden');
+
+            const pacePerKm = totalSeconds / distance;
+            document.getElementById('pace-output').textContent = formatTime(pacePerKm);
+            document.getElementById('lap-output').textContent = formatTime(pacePerKm * 0.4, true);
+
+            const resultsTable = document.getElementById('competition-results');
+            resultsTable.innerHTML = '';
+            competitionEvents.forEach(event => {
+                let resultText = '';
+                if (event.distanceInKm) {
+                    resultText = formatTime(pacePerKm * event.distanceInKm);
+                } else { // Cooper's test
+                    const cooperDist = (12 * 60) / pacePerKm;
+                    resultText = `<span class="font-bold text-blue-600">${cooperDist.toFixed(2)} km</span>`;
+                }
+                resultsTable.innerHTML += `<tr class="border-t"><td class="p-3">${event.name}</td><td class="p-3 text-right font-mono">${resultText}</td></tr>`;
+            });
+        }
+
+        function calculateTargetPace() {
+            document.activeElement.blur();
+            const selectedIndex = document.getElementById('target-dist-select').value;
+            const selectedEvent = competitionEvents[selectedIndex];
+            const distanceKm = selectedEvent.distanceInKm;
+            
+            const minutes = parseInt(document.getElementById('target-min').value) || 0;
+            const seconds = parseInt(document.getElementById('target-sek').value) || 0;
+            const errorDiv = document.getElementById('error-tavoite');
+            const resultsDiv = document.getElementById('results-tavoite');
+
+            const totalSeconds = (minutes * 60) + seconds;
+            if (totalSeconds <= 0) {
+                errorDiv.textContent = "Syötä kelvollinen tavoiteaika.";
+                resultsDiv.classList.add('hidden');
+                return;
+            }
+            errorDiv.textContent = "";
+            resultsDiv.classList.remove('hidden');
+
+            const pace = totalSeconds / distanceKm;
+            document.getElementById('req-pace-output').textContent = formatTime(pace);
+            document.getElementById('req-lap-output').textContent = formatTime(pace * 0.4, true);
+
+            const splitsTable = document.getElementById('splits-table');
+            splitsTable.innerHTML = '';
+            let splits = [];
+
+            if (distanceKm === 1.5) {
+                splits.push({ label: "400 m", time: formatTime(pace * 0.4) });
+                splits.push({ label: "800 m", time: formatTime(pace * 0.8) });
+                splits.push({ label: "1200 m", time: formatTime(pace * 1.2) });
+                splits.push({ label: "1500 m", time: formatTime(totalSeconds) });
+            } else {
+                const totalKms = Math.floor(distanceKm);
+                for (let km = 1; km <= totalKms; km++) {
+                    splits.push({ label: `${km} km`, time: formatTime(pace * km) });
+                }
+                if (distanceKm !== totalKms) {
+                    const finalSplitName = `${String(distanceKm).replace('.', ',')} km`;
+                    splits.push({ label: finalSplitName, time: formatTime(totalSeconds) });
+                }
+            }
+            splits.forEach(split => {
+                splitsTable.innerHTML += `<tr class="border-t"><td class="p-3 font-medium">${split.label}</td><td class="p-3 text-right font-mono">${split.time}</td></tr>`;
+            });
+        }
+    </script>
+
+<script data-goatcounter="https://vauhtilaskuri.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+
+</body>
+</html>
