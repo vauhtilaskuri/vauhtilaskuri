@@ -17,9 +17,10 @@
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
             border-color: #3B82F6;
         }
-        /* Hide scrollbar for clean look */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .lang-btn-active {
+            background-color: #3B82F6; /* blue-500 */
+            color: white;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -27,133 +28,213 @@
     <!-- Main container for the single-page app -->
     <div class="container mx-auto max-w-lg min-h-screen flex flex-col p-4">
 
+        <!-- Language Switcher -->
+        <div class="flex justify-end mb-2">
+            <div class="flex border border-gray-300 rounded-lg">
+                <button id="lang-fi" onclick="setLanguage('fi')" class="lang-btn-active px-3 py-1 text-sm font-semibold rounded-l-md">FI</button>
+                <button id="lang-en" onclick="setLanguage('en')" class="px-3 py-1 text-sm font-semibold rounded-r-md">EN</button>
+            </div>
+        </div>
+
         <!-- Tab buttons -->
         <div class="flex bg-gray-200 p-1 rounded-lg mb-4">
-            <button id="tab-vauhtilaskuri" onclick="switchTab('vauhtilaskuri')" class="flex-1 py-2 px-4 text-sm font-semibold rounded-md bg-white text-blue-600 shadow">Vauhtilaskuri</button>
-            <button id="tab-tavoitetaulukko" onclick="switchTab('tavoitetaulukko')" class="flex-1 py-2 px-4 text-sm font-semibold text-gray-600">Tavoitetaulukko</button>
+            <button id="tab-vauhtilaskuri" onclick="switchTab('vauhtilaskuri')" class="flex-1 py-2 px-4 text-sm font-semibold rounded-md bg-white text-blue-600 shadow" data-translate-key="tab_pace_calculator">Vauhtilaskuri</button>
+            <button id="tab-tavoitetaulukko" onclick="switchTab('tavoitetaulukko')" class="flex-1 py-2 px-4 text-sm font-semibold text-gray-600" data-translate-key="tab_target_pace">Tavoitetaulukko</button>
         </div>
 
         <!-- Vauhtilaskuri Page -->
         <div id="page-vauhtilaskuri" class="flex flex-col flex-grow">
             <div class="text-center mb-4">
-                <h1 class="text-3xl font-bold text-gray-800">Vauhtilaskuri</h1>
+                <h1 class="text-3xl font-bold text-gray-800" data-translate-key="header_pace_calculator">Vauhtilaskuri</h1>
             </div>
             
             <div class="grid grid-cols-3 gap-3">
                 <div>
-                    <label for="dist" class="text-xs text-gray-500">Matka (km)</label>
+                    <label for="dist" class="text-xs text-gray-500" data-translate-key="label_distance">Matka (km)</label>
                     <input type="number" id="dist" inputmode="decimal" placeholder="5.0" class="w-full text-lg p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none input-focus">
                 </div>
                 <div>
-                    <label for="min" class="text-xs text-gray-500">Min</label>
+                    <label for="min" class="text-xs text-gray-500" data-translate-key="label_min">Min</label>
                     <input type="number" id="min" inputmode="numeric" placeholder="25" class="w-full text-lg p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none input-focus">
                 </div>
                 <div>
-                    <label for="sek" class="text-xs text-gray-500">Sek</label>
+                    <label for="sek" class="text-xs text-gray-500" data-translate-key="label_sec">Sek</label>
                     <input type="number" id="sek" inputmode="numeric" placeholder="30" class="w-full text-lg p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none input-focus">
                 </div>
             </div>
 
-            <button onclick="calculatePace()" class="w-full bg-blue-600 text-white font-bold text-lg py-3 mt-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none">Laske</button>
+            <button onclick="calculatePace()" class="w-full bg-blue-600 text-white font-bold text-lg py-3 mt-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none" data-translate-key="btn_calculate">Laske</button>
             
-            <p class="text-sm text-gray-600 text-center mt-4 px-4">Syötä juostu matka (km) ja väliaika, niin saat tasaisen vauhdin taulukon mukaisen arvioidun loppuajan kullekin matkalle.</p>
+            <p class="text-sm text-gray-600 text-center mt-4 px-4" data-translate-key="info_pace_calculator">Syötä juostu matka (km) ja väliaika, niin saat tasaisen vauhdin taulukon mukaisen arvioidun loppuajan kullekin matkalle.</p>
             
             <div id="error-vauhti" class="text-center text-red-600 mt-2 text-sm"></div>
             
             <div id="results-vauhti" class="hidden mt-4 space-y-4">
-                <!-- Pace and Lap time -->
                 <div class="grid grid-cols-2 gap-4 text-center">
                     <div class="bg-blue-50 p-3 rounded-lg">
-                        <p class="text-xs text-gray-600">Vauhti</p>
+                        <p class="text-xs text-gray-600" data-translate-key="label_pace">Vauhti</p>
                         <p id="pace-output" class="text-xl font-bold text-blue-700">00:00</p>
                         <p class="text-xs text-gray-500">/km</p>
                     </div>
                     <div class="bg-blue-50 p-3 rounded-lg">
-                        <p class="text-xs text-gray-600">Kierrosaika</p>
+                        <p class="text-xs text-gray-600" data-translate-key="label_lap_time">Kierrosaika</p>
                         <p id="lap-output" class="text-xl font-bold text-blue-700">00:00.00</p>
                         <p class="text-xs text-gray-500">400m</p>
                     </div>
                 </div>
-                <!-- Estimated times -->
                 <div class="bg-gray-50 rounded-lg border">
-                    <h3 class="text-md font-semibold p-3 border-b">Arvioidut ajat</h3>
+                    <h3 class="text-md font-semibold p-3 border-b" data-translate-key="header_estimated_times">Arvioidut ajat</h3>
                     <table class="w-full text-sm" id="competition-results"></table>
                 </div>
             </div>
-            <div class="flex-grow"></div> <!-- Pushes author name down -->
+            <div class="flex-grow"></div>
             <div class="text-center text-xs text-gray-400 mt-2">Kimmo Porttila</div>
         </div>
 
         <!-- Tavoitetaulukko Page -->
         <div id="page-tavoitetaulukko" class="hidden flex-col flex-grow">
             <div class="text-center mb-4">
-                <h1 class="text-3xl font-bold text-gray-800">Tavoitetaulukko</h1>
+                <h1 class="text-3xl font-bold text-gray-800" data-translate-key="header_target_pace">Tavoitetaulukko</h1>
             </div>
             
-            <select id="target-dist-select" class="w-full p-2 border border-gray-300 rounded-lg mb-3">
-                <!-- Options added by JS -->
-            </select>
+            <select id="target-dist-select" class="w-full p-2 border border-gray-300 rounded-lg mb-3"></select>
             
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label for="target-min" class="text-xs text-gray-500">Tavoiteaika (min)</label>
+                    <label for="target-min" class="text-xs text-gray-500" data-translate-key="label_target_time_min">Tavoiteaika (min)</label>
                     <input type="number" id="target-min" inputmode="numeric" placeholder="20" class="w-full text-lg p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none input-focus">
                 </div>
                 <div>
-                    <label for="target-sek" class="text-xs text-gray-500">Tavoiteaika (sek)</label>
+                    <label for="target-sek" class="text-xs text-gray-500" data-translate-key="label_target_time_sec">Tavoiteaika (sek)</label>
                     <input type="number" id="target-sek" inputmode="numeric" placeholder="00" class="w-full text-lg p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none input-focus">
                 </div>
             </div>
 
-            <button onclick="calculateTargetPace()" class="w-full bg-blue-600 text-white font-bold text-lg py-3 mt-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none">Laske väliajat</button>
+            <button onclick="calculateTargetPace()" class="w-full bg-blue-600 text-white font-bold text-lg py-3 mt-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none" data-translate-key="btn_calculate_splits">Laske väliajat</button>
             
-            <p class="text-sm text-gray-600 text-center mt-4 px-4">Syötä tavoiteaika haluamallesi kilpailumatkalle, niin saat tavoiteväliajat.</p>
+            <p class="text-sm text-gray-600 text-center mt-4 px-4" data-translate-key="info_target_pace">Syötä tavoiteaika haluamallesi kilpailumatkalle, niin saat tavoiteväliajat.</p>
             
             <div id="error-tavoite" class="text-center text-red-600 mt-2 text-sm"></div>
             
             <div id="results-tavoite" class="hidden mt-4 space-y-4">
                  <div class="grid grid-cols-2 gap-4 text-center">
                     <div class="bg-blue-50 p-3 rounded-lg">
-                        <p class="text-xs text-gray-600">Vaadittu vauhti</p>
+                        <p class="text-xs text-gray-600" data-translate-key="label_required_pace">Vaadittu vauhti</p>
                         <p id="req-pace-output" class="text-xl font-bold text-blue-700">00:00</p>
                         <p class="text-xs text-gray-500">/km</p>
                     </div>
                     <div class="bg-blue-50 p-3 rounded-lg">
-                        <p class="text-xs text-gray-600">Kierrosaika</p>
+                        <p class="text-xs text-gray-600" data-translate-key="label_lap_time">Kierrosaika</p>
                         <p id="req-lap-output" class="text-xl font-bold text-blue-700">00:00.00</p>
                         <p class="text-xs text-gray-500">400m</p>
                     </div>
                 </div>
                 <div class="bg-gray-50 rounded-lg border">
-                    <h3 class="text-md font-semibold p-3 border-b">Väliajat</h3>
+                    <h3 class="text-md font-semibold p-3 border-b" data-translate-key="header_splits">Väliajat</h3>
                     <table class="w-full text-sm" id="splits-table"></table>
                 </div>
             </div>
-            <div class="flex-grow"></div> <!-- Pushes author name down -->
+            <div class="flex-grow"></div>
             <div class="text-center text-xs text-gray-400 mt-2">Kimmo Porttila</div>
         </div>
     </div>
 
     <script>
-        const competitionEvents = [
-            { name: "1500 m", distanceInKm: 1.5 },
-            { name: "3000 m esteet", distanceInKm: 3.0 },
-            { name: "5000 m", distanceInKm: 5.0 },
-            { name: "10 km", distanceInKm: 10.0 },
-            { name: "Puolimaraton", distanceInKm: 21.0975 },
-            { name: "Maraton", distanceInKm: 42.195 },
-            { name: "Cooperin testi (12 min)", distanceInKm: null }
-        ];
+        let currentLanguage = 'fi';
 
-        // Populate target distance dropdown
-        const targetDistSelect = document.getElementById('target-dist-select');
-        competitionEvents.filter(e => e.distanceInKm).forEach((event, index) => {
-            const option = document.createElement('option');
-            option.value = index;
-            option.textContent = event.name;
-            if (event.distanceInKm === 5.0) option.selected = true;
-            targetDistSelect.appendChild(option);
-        });
+        const translations = {
+            fi: {
+                tab_pace_calculator: "Vauhtilaskuri",
+                tab_target_pace: "Tavoitetaulukko",
+                header_pace_calculator: "Vauhtilaskuri",
+                header_target_pace: "Tavoitetaulukko",
+                label_distance: "Matka (km)",
+                label_min: "Min",
+                label_sec: "Sek",
+                btn_calculate: "Laske",
+                info_pace_calculator: "Syötä juostu matka (km) ja väliaika, niin saat tasaisen vauhdin taulukon mukaisen arvioidun loppuajan kullekin matkalle.",
+                label_pace: "Vauhti",
+                label_lap_time: "Kierrosaika",
+                header_estimated_times: "Arvioidut ajat",
+                label_target_time_min: "Tavoiteaika (min)",
+                label_target_time_sec: "Tavoiteaika (sek)",
+                btn_calculate_splits: "Laske väliajat",
+                info_target_pace: "Syötä tavoiteaika haluamallesi kilpailumatkalle, niin saat tavoiteväliajat.",
+                label_required_pace: "Vaadittu vauhti",
+                header_splits: "Väliajat",
+                error_distance: "Syötä kelvollinen matka.",
+                error_time: "Syötä kelvollinen aika.",
+                error_target_time: "Syötä kelvollinen tavoiteaika."
+            },
+            en: {
+                tab_pace_calculator: "Pace Calculator",
+                tab_target_pace: "Target Pace",
+                header_pace_calculator: "Pace Calculator",
+                header_target_pace: "Target Pace",
+                label_distance: "Distance (km)",
+                label_min: "Min",
+                label_sec: "Sec",
+                btn_calculate: "Calculate",
+                info_pace_calculator: "Enter your distance (km) and time to get estimated finish times for various distances based on your pace.",
+                label_pace: "Pace",
+                label_lap_time: "Lap Time",
+                header_estimated_times: "Estimated Times",
+                label_target_time_min: "Target Time (min)",
+                label_target_time_sec: "Target Time (sec)",
+                btn_calculate_splits: "Calculate Splits",
+                info_target_pace: "Enter your target time for a race distance to get the required pace and splits.",
+                label_required_pace: "Required Pace",
+                header_splits: "Splits",
+                error_distance: "Please enter a valid distance.",
+                error_time: "Please enter a valid time.",
+                error_target_time: "Please enter a valid target time."
+            }
+        };
+
+        const competitionEvents = {
+            fi: [
+                { name: "1500 m", distanceInKm: 1.5 }, { name: "3000 m esteet", distanceInKm: 3.0 },
+                { name: "5000 m", distanceInKm: 5.0 }, { name: "10 km", distanceInKm: 10.0 },
+                { name: "Puolimaraton", distanceInKm: 21.0975 }, { name: "Maraton", distanceInKm: 42.195 },
+                { name: "Cooperin testi (12 min)", distanceInKm: null }
+            ],
+            en: [
+                { name: "1500 m", distanceInKm: 1.5 }, { name: "3000m Steeplechase", distanceInKm: 3.0 },
+                { name: "5000 m", distanceInKm: 5.0 }, { name: "10k", distanceInKm: 10.0 },
+                { name: "Half Marathon", distanceInKm: 21.0975 }, { name: "Marathon", distanceInKm: 42.195 },
+                { name: "Cooper Test (12 min)", distanceInKm: null }
+            ]
+        };
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            document.documentElement.lang = lang;
+            
+            document.querySelectorAll('[data-translate-key]').forEach(element => {
+                const key = element.getAttribute('data-translate-key');
+                element.textContent = translations[lang][key];
+            });
+
+            document.getElementById('lang-fi').classList.toggle('lang-btn-active', lang === 'fi');
+            document.getElementById('lang-en').classList.toggle('lang-btn-active', lang === 'en');
+
+            populateTargetDistSelect();
+            // Re-run calculations to update table headers if results are visible
+            if (!document.getElementById('results-vauhti').classList.contains('hidden')) calculatePace();
+            if (!document.getElementById('results-tavoite').classList.contains('hidden')) calculateTargetPace();
+        }
+
+        function populateTargetDistSelect() {
+            const targetDistSelect = document.getElementById('target-dist-select');
+            targetDistSelect.innerHTML = '';
+            competitionEvents[currentLanguage].filter(e => e.distanceInKm).forEach((event, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = event.name;
+                if (event.distanceInKm === 5.0) option.selected = true;
+                targetDistSelect.appendChild(option);
+            });
+        }
 
         function formatTime(totalSeconds, showMilliseconds = false) {
             if (isNaN(totalSeconds) || !isFinite(totalSeconds)) return "00:00";
@@ -200,15 +281,13 @@
             const resultsDiv = document.getElementById('results-vauhti');
 
             if (isNaN(distance) || distance <= 0) {
-                errorDiv.textContent = "Syötä kelvollinen matka.";
-                resultsDiv.classList.add('hidden');
-                return;
+                errorDiv.textContent = translations[currentLanguage].error_distance;
+                resultsDiv.classList.add('hidden'); return;
             }
             const totalSeconds = (minutes * 60) + seconds;
             if (totalSeconds <= 0) {
-                errorDiv.textContent = "Syötä kelvollinen aika.";
-                resultsDiv.classList.add('hidden');
-                return;
+                errorDiv.textContent = translations[currentLanguage].error_time;
+                resultsDiv.classList.add('hidden'); return;
             }
             errorDiv.textContent = "";
             resultsDiv.classList.remove('hidden');
@@ -219,11 +298,11 @@
 
             const resultsTable = document.getElementById('competition-results');
             resultsTable.innerHTML = '';
-            competitionEvents.forEach(event => {
+            competitionEvents[currentLanguage].forEach(event => {
                 let resultText = '';
                 if (event.distanceInKm) {
                     resultText = formatTime(pacePerKm * event.distanceInKm);
-                } else { // Cooper's test
+                } else {
                     const cooperDist = (12 * 60) / pacePerKm;
                     resultText = `<span class="font-bold text-blue-600">${cooperDist.toFixed(2)} km</span>`;
                 }
@@ -234,7 +313,7 @@
         function calculateTargetPace() {
             document.activeElement.blur();
             const selectedIndex = document.getElementById('target-dist-select').value;
-            const selectedEvent = competitionEvents[selectedIndex];
+            const selectedEvent = competitionEvents[currentLanguage].filter(e => e.distanceInKm)[selectedIndex];
             const distanceKm = selectedEvent.distanceInKm;
             
             const minutes = parseInt(document.getElementById('target-min').value) || 0;
@@ -244,9 +323,8 @@
 
             const totalSeconds = (minutes * 60) + seconds;
             if (totalSeconds <= 0) {
-                errorDiv.textContent = "Syötä kelvollinen tavoiteaika.";
-                resultsDiv.classList.add('hidden');
-                return;
+                errorDiv.textContent = translations[currentLanguage].error_target_time;
+                resultsDiv.classList.add('hidden'); return;
             }
             errorDiv.textContent = "";
             resultsDiv.classList.remove('hidden');
@@ -278,7 +356,13 @@
                 splitsTable.innerHTML += `<tr class="border-t"><td class="p-3 font-medium">${split.label}</td><td class="p-3 text-right font-mono">${split.time}</td></tr>`;
             });
         }
+        
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', () => {
+            populateTargetDistSelect();
+        });
     </script>
+
 
 
 
